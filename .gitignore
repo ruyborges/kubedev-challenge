@@ -1,0 +1,6 @@
+!movie/
+movie/*
+!review/
+review/*
+!rotten-potatoes-ms/
+rotten-potatoes-ms/*

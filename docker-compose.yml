@@ -1,0 +1,74 @@
+version: '3.8'
+
+volumes:
+  postgresdb_vol:
+  mongodb_vol:
+
+
+networks:
+  applications:
+    driver: bridge
+
+services:
+
+  app:
+    image: ruyborges/rotten-potatoes-ms:v1
+    env_file: api/app.conf
+    build:
+      dockerfile: ./src/Dockerfile
+      context: ./
+    ports:
+      - 5000:5000
+    networks:
+      - applications
+    depends_on:
+      - api-movie
+      - api-review
+
+  api-review:
+    image: ruyborges/review:latest
+    env_file: api/api-review.conf
+    build:
+      dockerfile: ./src/Dockerfile
+      context: ./
+    ports:
+      - 8282:80
+    networks:
+      - applications
+    depends_on:
+      - postgresdb
+
+  api-movie:
+    image: ruyborges/movie:latest
+    env_file: api/api-movie.conf
+    build:
+      dockerfile: ./src/Dockerfile
+      context: ./
+    ports:
+      - 8181:8181
+    networks:
+      - applications
+    depends_on:
+      - mongodb
+
+  postgresdb:
+    image: postgres:14.1-alpine
+    container_name: postgresdb-movie
+    env_file: databases/review.conf
+    ports:
+      - 5432:5432
+    networks:
+      - applications
+    volumes:
+      - postgresdb_vol:/var/lib/postgresql/data
+
+  mongodb:
+    image: mongo:5.0.5
+    container_name: mongodb-movie
+    env_file: databases/movie.conf
+    ports:
+      - 27017:27017
+    networks:
+      - applications
+    volumes:
+      - mongodb_vol:/data/db
